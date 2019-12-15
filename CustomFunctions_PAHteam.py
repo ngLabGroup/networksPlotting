@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Created on Mon Aug 27 12:05:58 2018
 
@@ -89,19 +89,13 @@ def hierarchy_posMS(G, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 ):
     #**************
     return posfinal
 
-##plotting code from the text phase, comment this out in final version
-#nx.draw(G, pos=posfinal, with_labels=True)
-#ax = plt.gca()
-#ax.set_axis_off()
-#plt.show()
     
 #Alternative hierarchy plotting
 def hierarchy_posLanes(G, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5 ):
     #first thing is to go through the network and assign the "y" values
     from FindSourceSink import FindSourceSink
     [SourceN, SinkN] = FindSourceSink(G)
-    
-    
+
     #**************
     return posfinal
 

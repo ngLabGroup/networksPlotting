@@ -66,6 +66,42 @@ plt.show()
 
 os.chdir(r'C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\PlottingImages')
        
-#fig.savefig( 'scale_Phen.png', format='png', dpi=2400)    
+#fig.savefig( 'scale_Phen.png', format='png', dpi=2400)   
+
+#####################################################################
+#####################################################################
+
+#write out the structures for the false positives. Use a image program to compile these images with waterfallPlot_LitMatches.py
+import os
+from rdkit import Chem
+from rdkit.Chem import Descriptors
+from rdkit.Chem import rdDepictor
+from rdkit.Chem.Draw import rdMolDraw2D
+from rdkit.Chem.Draw import DrawingOptions
+import xlsxwriter
+
+#This code can be used to re-write the smiles code as one that will match the others in the network
+oldS = 'OC(=O)C1=CC=CC=C1C(O)=O'
+newS = Chem.MolToSmiles(Chem.MolFromSmiles(oldS),True) 
+print(newS)
+
+###*******************************************************************
+DrawingOptions.atomLabelFontSize = 55
+DrawingOptions.dotsPerAngstrom = 100
+DrawingOptions.bondLineWidth = 9.0
+
+DrawingOptions.padding = 0
+DrawingOptions.dblBondOffset = 0.4
+DrawingOptions.atomLabelFontFace = 'Times-Bold'
+
+DrawingOptions.elemDict= {0: (0.5, 0.5, 0.5), 1: (0.55, 0.55, 0.55), 7: (0, 0, 1), 8: (0, 0, 0), 9: (0.2, 0.8, 0.8), 15: (1, 0.5, 0), 16: (0.8, 0.8, 0), 17: (0, 0.8, 0), 35: (0.5, 0.3, 0.1), 53: (0.63, 0.12, 0.94)}
+
+os.chdir('C:\ResearchWorkingDirectory\TempImages')
+
+m = Chem.MolFromSmiles('[O-]C(=O)C(=O)c1ccccc1C([O-])=O')
+imageSTR = 'Phen1.png'
+
+#comment this out if you don't want the file for the metabolite image to be written out. 
+#Chem.Draw.MolToFile(m, imageSTR, size=(700, 700),fitImage=True)
 
             

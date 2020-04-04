@@ -63,7 +63,7 @@ def ClusterFps(fps,cutoff=0.2):
     
 
 #This file will not work with the example data as it requires at least several hundred nodes in order to develop MCS structures. However, the code is provided as reference. 
-dfQF = pd.read_excel(r"C:\ResearchWorkingDirectory\gitRepositories\networksPlotting\PhenQFNodes20191226-175705.xlsx", sheet_name = 'Sheet1')
+dfQF = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PhenNodeThroughput_32_Check.xlsx", sheet_name = 'Sheet1')
 
 #sort and take the top 1% of highest betweeness compounds
 dfQF.sort_values(by ='Betweenness Centrality', ascending = False, inplace = True)
@@ -272,5 +272,9 @@ ImageDraw.Draw(imgs_comb).text((4800, 700), str(compoundsinTop5[4]) , (0, 0, 0) 
 ImageDraw.Draw(imgs_comb).line( [(0,1550),(6015,1550)], fill = (0,0,0), width = 15)
 ImageDraw.Draw(imgs_comb).line( [(0,700),(6015,700)], fill = (0,0,0), width = 15)
 
+
+#set the directoring
+os.chdir(r'C:\ResearchWorkingDirectory\DataReferenceFiles\NewBCS_images')
+
 ##save off that beautiful image
-imgs_comb.save( 'Phen BetweennessTest.jpg' , "JPEG", quality=100, optimize=False, progressive=False)    
+imgs_comb.save( 'PhenBetweenness_32_Check.jpg' , "JPEG", quality=100, optimize=False, progressive=False)    

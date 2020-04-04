@@ -35,110 +35,110 @@ from CustomFunctions_PAHteam import FindSourceSink
 from CustomFunctions_PAHteam import hierarchy_posMS
 
 
-#Categories
-df = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\SimiliarityCompounds.xlsx", sheet_name = 'HighThroughput')
-
-LogP = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\AnthraceneRawQFnodes.xlsx", sheet_name = 'Sheet1')
-
-knownNodesDF = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\SimiliarityCompounds.xlsx", sheet_name = 'Anthracene')
-
-listNodes = list(knownNodesDF['Perfect_Match'])
-knownNodes = [x for x in listNodes if str(x) != 'nan']
-
-LogP.drop(columns=['OutDeg'], inplace = True)
-LogP.drop(columns=['InDeg'], inplace = True)
-
-LogP2 = LogP.loc[LogP['nodeTransferWeights'] >= 0.01]
-LogP2.reset_index(inplace = True, drop = True)
-#nodeList is the nodes predicted by the high Throughput method
-nodeList = list(LogP2['SMILES'])
-
-#***********************
-finalNodes = []
-for n in nodeList:
-    m = Chem.MolFromSmiles(n)
-    #only include the edges if there's a ring
-    if (Chem.Lipinski.NumAromaticRings(m) != 0): 
-        finalNodes.append(n)
-#***************************************
-
-df_raw = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\AnthraceneRawWeight.xlsx", sheet_name = 'Sheet1')
-
-#need to make sure we use the weights here
-G_raw = nx.from_pandas_edgelist(df_raw, source ='From', target = 'To', edge_attr=True, create_using=nx.DiGraph())
-
-newDF = df_raw.iloc[0:0]
-allNodes = []
-
-#first nodelist, need this to generate Pathnodes
-for n in nodeList: 
-    m = Chem.MolFromSmiles(n)
-    #only include the edges if there's a ring
-    if (Chem.Lipinski.NumAromaticRings(m) != 0): 
-        #*****************************
-        outEdges = list(G_raw.out_edges(n))
-        tempc = []
-
-        for o in outEdges: 
-            if (o[0] in nodeList) &  (o[1] in nodeList):
-                tempc = df_raw.loc[(df_raw['From'] == o[0]) & (df_raw['To'] == o[1])]
-                newDF = newDF.append(tempc)
-                tempc = []
-            else:
-                print()
-        #*******************************
-
-
-G_new = nx.from_pandas_edgelist(newDF, source ='From', target = 'To', edge_attr=True, create_using=nx.DiGraph())
-
-[SourceN, SinkN] = FindSourceSink(G_new)
-#drop the ghosts from Anthracene - these are the two compounds that are not part of the pathNodes 
-newDF.drop([45878,48358], inplace = True)
-
-#dump the satillite nodes that are not part of path from the source:
-
-#so now we can put together a list of the PathNodes
-pathNodes = list(set(newDF['From']) |set(newDF['To']) )
-
-
-#*************************
-iterator = 0
-litNodeClassification = pd.DataFrame(columns=['SMILES', 'Classification'])
-needmatches = 0
-for k in knownNodes:
-    if k in nodeList:
-        litNodeClassification.loc[iterator] = [k,'perfectMatch']
-        iterator +=1
-    #check if the literature node matches the carbon backbone of anything in the model
-    elif k in list(LogP['SMILES']):
-        litNodeClassification.loc[iterator] = [k,'LowTPMatch']
-        iterator +=1
-    else:
-        litNodeClassification.loc[iterator] = [k,'NoMatch']
-        iterator +=1
-        #if there's no match, do through the PathNodes and dry to find the closest similiarty and then visually check the carbon backbone
-        m1 = Chem.MolFromSmiles(k)
-        fps1 = FingerprintMols.FingerprintMol(m1)
-        
-        #check the best possible match, and don't use path nodes, use the original list with the isolated ghosts in it
-        alldiceSims = pd.DataFrame(columns=['SMILES', 'Dice'])
-        iterator2 = 0
-        for n in nodeList:
-            #check the similitary
-            m2 = Chem.MolFromSmiles(n)
-            fps2 = FingerprintMols.FingerprintMol(m2)
-            diceSim = DataStructs.DiceSimilarity(fps1, fps2)
-#            diceSim = DataStructs.FingerprintSimilarity(fps1, fps2)
-            alldiceSims.loc[iterator2] = [n,diceSim]
-            iterator2 += 1
-        alldiceSims.sort_values(by = ['Dice'], ascending = False, inplace = True)
-        alldiceSims.reset_index(drop = True, inplace = True)
-        print(k, ' best match is ', alldiceSims.loc[:3])
-#        for i in range (0,4):
-#            mOut = Chem.MolFromSmiles(alldiceSims.loc[i]['SMILES'])
-#        mOut
-        needmatches +=1
-#*******************************
+##Categories
+#df = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\SimiliarityCompounds.xlsx", sheet_name = 'HighThroughput')
+#
+#LogP = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\AnthraceneRawQFnodes.xlsx", sheet_name = 'Sheet1')
+#
+#knownNodesDF = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\SimiliarityCompounds.xlsx", sheet_name = 'Anthracene')
+#
+#listNodes = list(knownNodesDF['Perfect_Match'])
+#knownNodes = [x for x in listNodes if str(x) != 'nan']
+#
+#LogP.drop(columns=['OutDeg'], inplace = True)
+#LogP.drop(columns=['InDeg'], inplace = True)
+#
+#LogP2 = LogP.loc[LogP['nodeTransferWeights'] >= 0.01]
+#LogP2.reset_index(inplace = True, drop = True)
+##nodeList is the nodes predicted by the high Throughput method
+#nodeList = list(LogP2['SMILES'])
+#
+##***********************
+#finalNodes = []
+#for n in nodeList:
+#    m = Chem.MolFromSmiles(n)
+#    #only include the edges if there's a ring
+#    if (Chem.Lipinski.NumAromaticRings(m) != 0): 
+#        finalNodes.append(n)
+##***************************************
+#
+#df_raw = pd.read_excel(r"C:\ResearchWorkingDirectory\DataReferenceFiles\PaperData\AnthraceneRawWeight.xlsx", sheet_name = 'Sheet1')
+#
+##need to make sure we use the weights here
+#G_raw = nx.from_pandas_edgelist(df_raw, source ='From', target = 'To', edge_attr=True, create_using=nx.DiGraph())
+#
+#newDF = df_raw.iloc[0:0]
+#allNodes = []
+#
+##first nodelist, need this to generate Pathnodes
+#for n in nodeList: 
+#    m = Chem.MolFromSmiles(n)
+#    #only include the edges if there's a ring
+#    if (Chem.Lipinski.NumAromaticRings(m) != 0): 
+#        #*****************************
+#        outEdges = list(G_raw.out_edges(n))
+#        tempc = []
+#
+#        for o in outEdges: 
+#            if (o[0] in nodeList) &  (o[1] in nodeList):
+#                tempc = df_raw.loc[(df_raw['From'] == o[0]) & (df_raw['To'] == o[1])]
+#                newDF = newDF.append(tempc)
+#                tempc = []
+#            else:
+#                print()
+#        #*******************************
+#
+#
+#G_new = nx.from_pandas_edgelist(newDF, source ='From', target = 'To', edge_attr=True, create_using=nx.DiGraph())
+#
+#[SourceN, SinkN] = FindSourceSink(G_new)
+##drop the ghosts from Anthracene - these are the two compounds that are not part of the pathNodes 
+#newDF.drop([45878,48358], inplace = True)
+#
+##dump the satillite nodes that are not part of path from the source:
+#
+##so now we can put together a list of the PathNodes
+#pathNodes = list(set(newDF['From']) |set(newDF['To']) )
+#
+#
+##*************************
+#iterator = 0
+#litNodeClassification = pd.DataFrame(columns=['SMILES', 'Classification'])
+#needmatches = 0
+#for k in knownNodes:
+#    if k in nodeList:
+#        litNodeClassification.loc[iterator] = [k,'perfectMatch']
+#        iterator +=1
+#    #check if the literature node matches the carbon backbone of anything in the model
+#    elif k in list(LogP['SMILES']):
+#        litNodeClassification.loc[iterator] = [k,'LowTPMatch']
+#        iterator +=1
+#    else:
+#        litNodeClassification.loc[iterator] = [k,'NoMatch']
+#        iterator +=1
+#        #if there's no match, do through the PathNodes and dry to find the closest similiarty and then visually check the carbon backbone
+#        m1 = Chem.MolFromSmiles(k)
+#        fps1 = FingerprintMols.FingerprintMol(m1)
+#        
+#        #check the best possible match, and don't use path nodes, use the original list with the isolated ghosts in it
+#        alldiceSims = pd.DataFrame(columns=['SMILES', 'Dice'])
+#        iterator2 = 0
+#        for n in nodeList:
+#            #check the similitary
+#            m2 = Chem.MolFromSmiles(n)
+#            fps2 = FingerprintMols.FingerprintMol(m2)
+#            diceSim = DataStructs.DiceSimilarity(fps1, fps2)
+##            diceSim = DataStructs.FingerprintSimilarity(fps1, fps2)
+#            alldiceSims.loc[iterator2] = [n,diceSim]
+#            iterator2 += 1
+#        alldiceSims.sort_values(by = ['Dice'], ascending = False, inplace = True)
+#        alldiceSims.reset_index(drop = True, inplace = True)
+#        print(k, ' best match is ', alldiceSims.loc[:3])
+##        for i in range (0,4):
+##            mOut = Chem.MolFromSmiles(alldiceSims.loc[i]['SMILES'])
+##        mOut
+#        needmatches +=1
+##*******************************
 
 #exact literature match with smiles
 perfectMatches = []
@@ -153,25 +153,26 @@ modelNotLit = []
 
 #'Acenapthene', 'Anthracene','Fluorene',  'Phenanthrene'
 N = 4
+plt.rcdefaults()
 plt.rcParams["hatch.linewidth"] = 4
-compoundTotals = np.array([16,46,48,88])
+compoundTotals = np.array([16,47,46,84])
 
-noMatchRaw = np.array([2,13,10,28])
+noMatchRaw = np.array([2,13,8,25])
 noMatch =  np.divide(noMatchRaw,compoundTotals)
 
-noMatchMultRaw =  np.array([0,6,4,14]) 
+noMatchMultRaw =  np.array([0,6,4,13]) 
 noMatchMult =  np.divide(noMatchMultRaw,compoundTotals)
 
-partialLowRaw = np.array([0,2,5,4])
+partialLowRaw = np.array([0,3,5,4])
 partialLow = np.divide(partialLowRaw,compoundTotals)
 
-partialMatchRaw = np.array([3,11,10,24])
+partialMatchRaw = np.array([4,11,11,25])
 partialMatch = np.divide(partialMatchRaw,compoundTotals)
 
-lowThroughputRaw = np.array([8,3,10,4])
+lowThroughputRaw = np.array([8,3,8,3])
 lowThroughput = np.divide(lowThroughputRaw,compoundTotals)
 
-perfectMatchRaw = np.array([3,11,9,14])
+perfectMatchRaw = np.array([2,11,10,14])
 perfectMatch = np.divide(perfectMatchRaw,compoundTotals)
 
 ind = np.arange(N)    # the x locations for the groups
@@ -186,8 +187,11 @@ width = 0.35       # the width of the bars: can also be len(x) sequence
 
 
 
-#Set the grey hatch             
-plt.rcParams['hatch.color'] = 'B1B1B2'      #  grey hatch       
+#Set the grey hatch 
+
+
+            
+plt.rcParams['hatch.color'] = '#B1B1B2'      #  grey hatch       
 #Perfect Match
 p1 = plt.bar(ind, perfectMatch, label = 'Perfect Match',  color ='#499562') 
              
@@ -210,7 +214,9 @@ plt.rcParams['hatch.color'] = 'black'
 p6 = plt.bar(ind, noMatch, label = 'No Match Single Paper', bottom = perfectMatch+partialMatch+lowThroughput+partialLow + noMatchMult, facecolor='#CF3B2A', hatch = r"//")   # red color with hatch
 
 #******************      
-ax = plt.subplot(111)         
+ax = plt.subplot(111)  
+#ax.set_facecolor('white')
+       
 #ax = plt.gca()
 
 box = ax.get_position()
@@ -222,7 +228,7 @@ handles = [handles[5], handles[4], handles[3], handles[2], handles[1], handles[0
 labels = [labels[5], labels[4], labels[3], labels[2], labels[1],labels[0]]
 
 #plt.legend(loc="best") 
-plt.legend(handles,labels, loc='center left', bbox_to_anchor=(1, 0.5), fontsize=14)  
+plt.legend(handles,labels, loc='center left', bbox_to_anchor=(1, 0.5), facecolor = 'white',fontsize=14)  
 #plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
 #          ncol=3, fancybox=True, shadow=True)
 #        
@@ -272,7 +278,6 @@ ax.yaxis.set_major_formatter(FuncFormatter(lambda y, _: '{:.0%}'.format(y)))
 ax.tick_params(axis="y", labelsize=16)
 ax.tick_params(axis="x", labelsize=16)
 
-
 fig = plt.gcf()
 cur_axes = plt.gca()
 
@@ -284,7 +289,10 @@ fig.set_size_inches(10, 6)
 
 #fig.set_size_inches(2, 5)
 
-
+for _, spine in ax.spines.items():
+    spine.set_visible(True)
+    spine.set_linewidth(1)
+    spine.set_edgecolor('k')
 
 plt.show()
 
